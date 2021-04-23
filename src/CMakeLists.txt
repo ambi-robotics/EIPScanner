@@ -1,4 +1,13 @@
-include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/cip
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/cip/connectionManager
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/eip
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/fileObject
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sockets
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/vendor
+)
 
 set(SOURCE_FILES
         cip/connectionManager/ForwardCloseRequest.cpp
@@ -58,6 +67,18 @@ if(WIN32)
 	target_link_libraries(EIPScannerS ws2_32)
 endif()
 
+target_include_directories(
+    EIPScanner PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/cip"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/cip/connectionManager"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/eip"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/fileObject"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/sockets"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/utils"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vendor"
+)
+
 set_target_properties(
         EIPScanner
         PROPERTIES
@@ -70,6 +91,6 @@ install(TARGETS EIPScanner EIPScannerS
         ARCHIVE
             DESTINATION lib)
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/
         DESTINATION include/EIPScanner
         FILES_MATCHING PATTERN "*.h*")
