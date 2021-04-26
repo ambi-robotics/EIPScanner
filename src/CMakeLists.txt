@@ -1,12 +1,12 @@
 include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/cip
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/cip/connectionManager
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/eip
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/fileObject
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/sockets
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vendor
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/cip
+    ${CMAKE_CURRENT_SOURCE_DIR}/cip/connectionManager
+    ${CMAKE_CURRENT_SOURCE_DIR}/eip
+    ${CMAKE_CURRENT_SOURCE_DIR}/fileObject
+    ${CMAKE_CURRENT_SOURCE_DIR}/sockets
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor
 )
 
 set(SOURCE_FILES
@@ -69,14 +69,14 @@ endif()
 
 target_include_directories(
     EIPScanner PUBLIC
-    "${CMAKE_CURRENT_SOURCE_DIR}/src"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/cip"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/cip/connectionManager"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/eip"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/fileObject"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/sockets"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/utils"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vendor"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cip"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cip/connectionManager"
+    "${CMAKE_CURRENT_SOURCE_DIR}/eip"
+    "${CMAKE_CURRENT_SOURCE_DIR}/fileObject"
+    "${CMAKE_CURRENT_SOURCE_DIR}/sockets"
+    "${CMAKE_CURRENT_SOURCE_DIR}/utils"
+    "${CMAKE_CURRENT_SOURCE_DIR}/vendor"
 )
 
 set_target_properties(
