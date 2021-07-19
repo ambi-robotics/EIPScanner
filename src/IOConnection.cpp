@@ -107,7 +107,8 @@ namespace eipScanner {
 		_lastHandleTime = now;
 
 		_o2tTimer += periodInMicroS;
-		if (_o2tTimer >= _o2tAPI) {
+		// if (_o2tTimer >= _o2tAPI) {
+			//Logger(LogLevel::WARNING) << "o2tTimer=" << _o2tTimer << " o2tAPI=" << _o2tAPI;
 			_o2tSequenceNumber++;
 			CommonPacket commonPacket;
 			CommonPacketItemFactory factory;
@@ -136,7 +137,7 @@ namespace eipScanner {
 
 				_socket->Send(commonPacket.pack());
 			}
-		}
+		// }
 
 		return true;
 	}
