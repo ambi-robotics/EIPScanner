@@ -132,7 +132,11 @@ namespace sockets {
 			long duration = std::chrono::duration_cast<std::chrono::milliseconds>(stopTime-startTime).count();
 			timespec ts;
 			ts.tv_nsec = duration*1000;
-			
+
+			sigset_t emptyset, blockset;
+			sigaddset(&blockset, SIGINT);
+			sigprocmask(SIG_BLOCK, &blockset, NULL);
+
 			fd_set recvSet;
 			FD_ZERO(&recvSet);
 			for (auto& sock : sockets) {				
@@ -143,8 +147,7 @@ namespace sockets {
 					std::cout << "FD_ISSET before wait.\n";
 				}
 			}			
-
-			sigset_t emptyset;
+			
 			sigemptyset(&emptyset);
 			std::cout << "Waiting for data...";
 			//ready = ::select(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &tv);
