@@ -11,9 +11,10 @@
 #include <time.h>
 #endif
 
-#include <iostream>
-#include <utility>
 #include <algorithm>
+#include <iostream>
+#include <signal.h>
+#include <utility>
 
 #include "BaseSocket.h"
 #include "Platform.h"
@@ -141,10 +142,13 @@ namespace sockets {
 				{
 					std::cout << "FD_ISSET before wait.\n";
 				}
-			}
+			}			
+
+			sigset_t emptyset;
+			sigemptyset(&emptyset);
 			std::cout << "Waiting for data...";
 			//ready = ::select(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &tv);
-			ready = ::pselect(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &ts, NULL);
+			ready = ::pselect(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &ts, &emptyset);
 			if (ready < 0) {
 				throw std::system_error(BaseSocket::getLastError(), BaseSocket::getErrorCategory());
 			}
