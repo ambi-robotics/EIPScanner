@@ -133,7 +133,11 @@ namespace sockets {
 			FD_ZERO(&recvSet);
 			for (auto& sock : sockets) {				
 				FD_SET(sock->getSocketFd(), &recvSet);
-				std::cout << "sock->_sockfd before" << sock->getSocketFd() << std::endl;
+				std::cout << "sock->_sockfd before " << sock->getSocketFd() << std::endl;
+				if (FD_ISSET(sock->getSocketFd(), &recvSet))
+				{
+					std::cout << "FD_ISSET before wait.\n";
+				}
 			}
 			std::cout << "Waiting for data...";
 			ready = ::select(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &tv);
@@ -143,12 +147,12 @@ namespace sockets {
 			std::cout << "received.\n";
 
 			for (auto& sock : sockets) {
-				std::cout << "sock->_sockfd after" << sock->getSocketFd() << std::endl;
-				if (FD_ISSET(sock->getSocketFd(), &recvSet)) {
-					std::cout << "FD_ISSET\n";
+				std::cout << "sock->_sockfd after " << sock->getSocketFd() << std::endl;
+				//if (FD_ISSET(sock->getSocketFd(), &recvSet)) {
+					std::cout << "FD_ISSET after wait.\n";
 					sock->BeginReceive();
 					continue;
-				}
+				//}
 			}
 
 			startTime = std::chrono::steady_clock::now();
