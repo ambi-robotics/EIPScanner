@@ -1,7 +1,7 @@
 //
 // Created by Aleksey Timin on 11/18/19.
 //
-
+#include <iostream>
 #include "IOConnection.h"
 #include "eip/CommonPacketItemFactory.h"
 #include "eip/CommonPacket.h"
@@ -92,7 +92,7 @@ namespace eipScanner {
 	}
 
 	bool IOConnection::notifyTick() {
-		Logger(LogLevel::INFO) << "1..";
+		std::cout << "1..";
 		auto now = std::chrono::steady_clock::now();
 		auto sinceLastHandle =
 			std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastHandleTime);
@@ -104,7 +104,7 @@ namespace eipScanner {
 			_closeHandle();
 			return false;
 		}
-		Logger(LogLevel::INFO) << "2..";
+		std::cout << "2..";
 		_lastHandleTime = now;
 
 		_o2tTimer += periodInMicroS;
@@ -125,7 +125,7 @@ namespace eipScanner {
 			cip::CipUdint header = 1; //TODO: Always RUN
 			buffer << header;
 		}
-		Logger(LogLevel::INFO) << "3..";
+		std::cout << "3..";
 		_o2tTimer = 0;
 		_sendDataHandle(_outputData);
 		if (_o2tFixedSize && _outputData.size() != _o2tDataSize)  {
@@ -135,11 +135,13 @@ namespace eipScanner {
 		} else {
 			buffer << _outputData;
 			commonPacket << factory.createConnectedDataItem(buffer.data());
-
+			
+			std::cout << "4..";
 			_socket->Send(commonPacket.pack());
+			std::cout << "5..";
 		}
 		// }
-		Logger(LogLevel::INFO) << "4..\n";
+		std::cout << "6..\n";
 		return true;
 	}
 }
