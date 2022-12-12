@@ -131,8 +131,9 @@ namespace sockets {
 
 			fd_set recvSet;
 			FD_ZERO(&recvSet);
-			for (auto& sock : sockets) {
+			for (auto& sock : sockets) {				
 				FD_SET(sock->getSocketFd(), &recvSet);
+				std::cout << "sock->_sockfd before" << sock->getSocketFd() << std::endl;
 			}
 			std::cout << "Waiting for data...";
 			ready = ::select(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &tv);
@@ -142,7 +143,7 @@ namespace sockets {
 			std::cout << "received.\n";
 
 			for (auto& sock : sockets) {
-				std::cout << "sock->_sockfd " << sock->getSocketFd() << std::endl;
+				std::cout << "sock->_sockfd after" << sock->getSocketFd() << std::endl;
 				if (FD_ISSET(sock->getSocketFd(), &recvSet)) {
 					std::cout << "FD_ISSET\n";
 					sock->BeginReceive();
