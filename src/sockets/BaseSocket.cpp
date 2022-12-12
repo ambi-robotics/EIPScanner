@@ -11,6 +11,7 @@
 #include <time.h>
 #endif
 
+#include <ionstream>
 #include <utility>
 #include <algorithm>
 
@@ -133,11 +134,12 @@ namespace sockets {
 			for (auto& sock : sockets) {
 				FD_SET(sock->getSocketFd(), &recvSet);
 			}
-
+			std::cout << "Waiting for data...";
 			ready = ::select(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &tv);
 			if (ready < 0) {
 				throw std::system_error(BaseSocket::getLastError(), BaseSocket::getErrorCategory());
 			}
+			std::cout << "received.\n";
 
 			for (auto& sock : sockets) {
 				if (FD_ISSET(sock->getSocketFd(), &recvSet)) {
