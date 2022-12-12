@@ -129,17 +129,10 @@ namespace sockets {
 		int ready;
 		do {
 			timeval tv = makePortableInterval(std::chrono::duration_cast<std::chrono::milliseconds>(stopTime-startTime));
-			long duration = std::chrono::duration_cast<std::chrono::milliseconds>(stopTime-startTime).count();
-			timespec ts;
-			ts.tv_nsec = duration*1000;
-
-			sigset_t emptyset, blockset;
-			sigaddset(&blockset, SIGINT);
-			sigprocmask(SIG_BLOCK, &blockset, NULL);
 
 			fd_set recvSet;
 			FD_ZERO(&recvSet);
-			for (auto& sock : sockets) {				
+			for (auto& sock : sockets) {
 				FD_SET(sock->getSocketFd(), &recvSet);
 				std::cout << "sock->_sockfd before " << sock->getSocketFd() << std::endl;
 				if (FD_ISSET(sock->getSocketFd(), &recvSet))
@@ -148,16 +141,16 @@ namespace sockets {
 				}
 			}			
 			
-			sigemptyset(&emptyset);
 			std::cout << "Waiting for data...";
-			//ready = ::select(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &tv);
-			ready = ::pselect(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &ts, &emptyset);
+			ready = ::select(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &tv);
 			if (ready < 0) {
 				throw std::system_error(BaseSocket::getLastError(), BaseSocket::getErrorCategory());
 			}
 			std::cout << "received.\n";
 
+			FD_ZERO(&recvSet);
 			for (auto& sock : sockets) {
+				FD_SET(sock->getSocketFd(), &recvSet);
 				std::cout << "sock->_sockfd after " << sock->getSocketFd() << std::endl;
 				if (FD_ISSET(sock->getSocketFd(), &recvSet)) {
 					std::cout << "FD_ISSET after wait.\n";
