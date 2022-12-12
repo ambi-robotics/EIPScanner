@@ -139,7 +139,7 @@ namespace eipScanner {
 			_socket->Send(commonPacket.pack());
 		}
 		// }
-		Logger(LogLevel::INFO) << "4..";
+		Logger(LogLevel::INFO) << "4..\n";
 		return true;
 	}
 }
