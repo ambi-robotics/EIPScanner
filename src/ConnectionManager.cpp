@@ -237,6 +237,7 @@ namespace eipScanner {
 			});
 
 			newSocket->setBeginReceiveHandler([this](BaseSocket& sock) {
+				Logger(LogLevel::INFO) << "Beginning receiving data...";
 				auto recvData = sock.Receive(8192);
 				CommonPacket commonPacket;
 				commonPacket.expand(recvData);
