@@ -142,7 +142,9 @@ namespace sockets {
 			std::cout << "received.\n";
 
 			for (auto& sock : sockets) {
+				std::cout << "sock->_sockfd " << sock->getSocketFd() << std::endl;
 				if (FD_ISSET(sock->getSocketFd(), &recvSet)) {
+					std::cout << "FD_ISSET\n";
 					sock->BeginReceive();
 					continue;
 				}
