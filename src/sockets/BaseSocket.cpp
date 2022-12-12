@@ -128,7 +128,10 @@ namespace sockets {
 		int ready;
 		do {
 			timeval tv = makePortableInterval(std::chrono::duration_cast<std::chrono::milliseconds>(stopTime-startTime));
-
+			long duration = std::chrono::duration_cast<std::chrono::milliseconds>(stopTime-startTime).count();
+			timespec ts;
+			ts.tv_nsec = duration*1000;
+			
 			fd_set recvSet;
 			FD_ZERO(&recvSet);
 			for (auto& sock : sockets) {				
@@ -140,7 +143,8 @@ namespace sockets {
 				}
 			}
 			std::cout << "Waiting for data...";
-			ready = ::select(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &tv);
+			//ready = ::select(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &tv);
+			ready = ::pselect(socketWithMaxFd->getSocketFd() + 1, &recvSet, NULL, NULL, &ts, NULL);
 			if (ready < 0) {
 				throw std::system_error(BaseSocket::getLastError(), BaseSocket::getErrorCategory());
 			}
