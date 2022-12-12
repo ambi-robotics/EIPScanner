@@ -92,6 +92,7 @@ namespace eipScanner {
 	}
 
 	bool IOConnection::notifyTick() {
+		Logger(LogLevel::INFO) << "1..";
 		auto now = std::chrono::steady_clock::now();
 		auto sinceLastHandle =
 			std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastHandleTime);
@@ -103,42 +104,42 @@ namespace eipScanner {
 			_closeHandle();
 			return false;
 		}
-
+		Logger(LogLevel::INFO) << "2..";
 		_lastHandleTime = now;
 
 		_o2tTimer += periodInMicroS;
 		// if (_o2tTimer >= _o2tAPI) {
 			//Logger(LogLevel::WARNING) << "o2tTimer=" << _o2tTimer << " o2tAPI=" << _o2tAPI;
-			_o2tSequenceNumber++;
-			CommonPacket commonPacket;
-			CommonPacketItemFactory factory;
-			commonPacket << factory.createSequenceAddressItem(_o2tNetworkConnectionId, _o2tSequenceNumber);
+		_o2tSequenceNumber++;
+		CommonPacket commonPacket;
+		CommonPacketItemFactory factory;
+		commonPacket << factory.createSequenceAddressItem(_o2tNetworkConnectionId, _o2tSequenceNumber);
 
-			Buffer buffer;
-			if ((_transportTypeTrigger & NetworkConnectionParams::CLASS1) > 0
-				|| (_transportTypeTrigger & NetworkConnectionParams::CLASS3) > 0) {
-				buffer << ++_sequenceValueCount;
-			}
+		Buffer buffer;
+		if ((_transportTypeTrigger & NetworkConnectionParams::CLASS1) > 0
+			|| (_transportTypeTrigger & NetworkConnectionParams::CLASS3) > 0) {
+			buffer << ++_sequenceValueCount;
+		}
 
-			if (_o2tRealTimeFormat) {
-				cip::CipUdint header = 1; //TODO: Always RUN
-				buffer << header;
-			}
+		if (_o2tRealTimeFormat) {
+			cip::CipUdint header = 1; //TODO: Always RUN
+			buffer << header;
+		}
+		Logger(LogLevel::INFO) << "3..";
+		_o2tTimer = 0;
+		_sendDataHandle(_outputData);
+		if (_o2tFixedSize && _outputData.size() != _o2tDataSize)  {
+			Logger(LogLevel::WARNING) << "Connection O2T_ID=" << _o2tNetworkConnectionId
+										<< " has fixed size " << _o2tDataSize << " bytes but " << _outputData.size()
+										<< " bytes are to send. Don't send this data.";
+		} else {
+			buffer << _outputData;
+			commonPacket << factory.createConnectedDataItem(buffer.data());
 
-			_o2tTimer = 0;
-			_sendDataHandle(_outputData);
-			if (_o2tFixedSize && _outputData.size() != _o2tDataSize)  {
-				Logger(LogLevel::WARNING) << "Connection O2T_ID=" << _o2tNetworkConnectionId
-										  << " has fixed size " << _o2tDataSize << " bytes but " << _outputData.size()
-										  << " bytes are to send. Don't send this data.";
-			} else {
-				buffer << _outputData;
-				commonPacket << factory.createConnectedDataItem(buffer.data());
-
-				_socket->Send(commonPacket.pack());
-			}
+			_socket->Send(commonPacket.pack());
+		}
 		// }
-
+		Logger(LogLevel::INFO) << "4..";
 		return true;
 	}
 }
