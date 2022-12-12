@@ -146,7 +146,7 @@ namespace sockets {
 			if (ready < 0) {
 				throw std::system_error(BaseSocket::getLastError(), BaseSocket::getErrorCategory());
 			}
-			std::cout << "received.\n";
+			std::cout << "received. ready: " << ready << "\n";
 
 			FD_ZERO(&recvSet);
 			for (auto& sock : sockets) {
