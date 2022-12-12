@@ -148,11 +148,11 @@ namespace sockets {
 
 			for (auto& sock : sockets) {
 				std::cout << "sock->_sockfd after " << sock->getSocketFd() << std::endl;
-				//if (FD_ISSET(sock->getSocketFd(), &recvSet)) {
+				if (FD_ISSET(sock->getSocketFd(), &recvSet)) {
 					std::cout << "FD_ISSET after wait.\n";
 					sock->BeginReceive();
 					continue;
-				//}
+				}
 			}
 
 			startTime = std::chrono::steady_clock::now();
