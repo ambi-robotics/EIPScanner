@@ -148,9 +148,7 @@ namespace sockets {
 			}
 			std::cout << "received. ready: " << ready << "\n";
 
-			FD_ZERO(&recvSet);
 			for (auto& sock : sockets) {
-				FD_SET(sock->getSocketFd(), &recvSet);
 				std::cout << "sock->_sockfd after " << sock->getSocketFd() << std::endl;
 				if (FD_ISSET(sock->getSocketFd(), &recvSet)) {
 					std::cout << "FD_ISSET after wait.\n";
