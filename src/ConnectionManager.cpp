@@ -227,6 +227,7 @@ namespace eipScanner {
 	}
 
 	UDPBoundSocket::SPtr ConnectionManager::findOrCreateSocket(const sockets::EndPoint& endPoint) {
+		Logger(LogLevel::ERROR) << "SOCK: " << endPoint.getHost() << " " << endPoint.getPort();
 		auto socket = _socketMap.find(endPoint);
 		if (socket == _socketMap.end()) {
 			auto newSocket = std::make_shared<UDPBoundSocket>(endPoint);
