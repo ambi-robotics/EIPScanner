@@ -88,6 +88,12 @@ namespace eipScanner {
 		sockets::EndPoint getRemoteEndPoint() const override;
 
 		/**
+		 * @sa SessionInfo::getLocalEndPoint
+		 * @return
+		 */
+		sockets::EndPoint getLocalEndPoint() const override;
+
+		/**
 		 * Gets whether this connection should use 8-bit path segments.
 		 * @return
 		 */
