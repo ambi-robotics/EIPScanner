@@ -154,5 +154,13 @@ namespace sockets {
 		return _remoteEndPoint;
 	}
 
+	EndPoint BaseSocket::getRemoteEndPoint() const {
+		struct sockaddr_in addr;
+		socklen_t addrlen = sizeof(addr);
+		if (getsockname(_sockedFd, (struct sockaddr *)&addr, &addrlen) < 0) {
+			throw std::runtime_error("Failed to get socket address");
+		}
+		return EndPoint(addr);
+	}
 }
 }
