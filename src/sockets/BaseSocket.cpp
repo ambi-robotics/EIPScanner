@@ -154,7 +154,7 @@ namespace sockets {
 		return _remoteEndPoint;
 	}
 
-	EndPoint BaseSocket::getRemoteEndPoint() const {
+	EndPoint BaseSocket::getRemoteEndPoint() {
 		struct sockaddr_in addr;
 		socklen_t addrlen = sizeof(addr);
 		if (getsockname(_sockedFd, (struct sockaddr *)&addr, &addrlen) < 0) {

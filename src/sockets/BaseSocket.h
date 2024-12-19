@@ -40,7 +40,7 @@ namespace sockets {
 		static const std::error_category& getErrorCategory() noexcept;
 
 		const EndPoint &getRemoteEndPoint() const;
-		EndPoint getLocalEndPoint() const;
+		EndPoint getLocalEndPoint();
 
 		static void select(std::vector<BaseSocket::SPtr> sockets, std::chrono::milliseconds timeout);
 
