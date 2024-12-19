@@ -34,12 +34,13 @@ namespace eipScanner {
 		FORWARD_CLOSE = 0x4E
 	};
 
-	ConnectionManager::ConnectionManager()
-		: ConnectionManager(std::make_shared<MessageRouter>()){
+	ConnectionManager::ConnectionManager(bool bindAny)
+		: ConnectionManager(std::make_shared<MessageRouter>(), bindAny){
 	}
 
-	ConnectionManager::ConnectionManager(const MessageRouter::SPtr& messageRouter)
+	ConnectionManager::ConnectionManager(const MessageRouter::SPtr& messageRouter, bool bindAny)
 		: _messageRouter(messageRouter)
+		, _bindAny(bindAny)
 		, _connectionMap(){
 
 		std::random_device rd;
@@ -227,10 +228,13 @@ namespace eipScanner {
 	}
 
 	UDPBoundSocket::SPtr ConnectionManager::findOrCreateSocket(const sockets::EndPoint& endPoint) {
-		Logger(LogLevel::ERROR) << "SOCK: " << endPoint.getHost() << " " << endPoint.getPort();
 		auto socket = _socketMap.find(endPoint);
 		if (socket == _socketMap.end()) {
-			auto newSocket = std::make_shared<UDPBoundSocket>(endPoint);
+			auto addr = endPoint.getAddr();
+			if (_bindAny) {
+				addr.sin_addr.s_addr = INADDR_ANY;
+			}
+			auto newSocket = std::make_shared<UDPBoundSocket>(sockets::EndPoint(addr));
 			_socketMap[endPoint] = newSocket;
 			newSocket->setBeginReceiveHandler([](sockets::BaseSocket& sock) {
 			  (void) sock;

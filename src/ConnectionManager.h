@@ -24,13 +24,13 @@ namespace eipScanner {
 		/**
 		 * @brief Default constructor
 		 */
-		ConnectionManager();
+		explicit ConnectionManager(bool bindAny = false);
 
 		/**
 		 * @note used fot testing
 		 * @param messageRouter
 		 */
-		explicit ConnectionManager(const MessageRouter::SPtr& messageRouter);
+		ConnectionManager(const MessageRouter::SPtr& messageRouter, bool bindAny = false);
 
 		/**
 		 * @brief Default destructor
@@ -80,6 +80,7 @@ namespace eipScanner {
 
 		sockets::UDPBoundSocket::SPtr  findOrCreateSocket(const sockets::EndPoint& endPoint);
 		cip::CipUint _incarnationId;
+		bool _bindAny;
 	};
 }
 
