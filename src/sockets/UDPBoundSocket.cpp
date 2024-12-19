@@ -12,6 +12,7 @@
 
 namespace eipScanner {
 namespace sockets {
+	using namespace utils;
 
 
 	UDPBoundSocket::UDPBoundSocket(std::string host, int port)
