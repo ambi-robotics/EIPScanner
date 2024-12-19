@@ -85,7 +85,7 @@ namespace eipScanner {
 		return _socket.getRemoteEndPoint();
 	}
 
-	sockets::EndPoint SessionInfo::getLocalEndPoint() const {
+	sockets::EndPoint SessionInfo::getLocalEndPoint() {
 		return _socket.getLocalEndPoint();
 	}
 

@@ -42,7 +42,7 @@ namespace eipScanner {
 		 * Gets the address of the EIP originator which the session is established with
 		 * @return
 		 */
-		virtual sockets::EndPoint getLocalEndPoint() const = 0;
+		virtual sockets::EndPoint getLocalEndPoint() = 0;
 
 		/**
 		 * Gets whether this connection should use 8-bit path segments.
