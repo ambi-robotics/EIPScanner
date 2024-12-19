@@ -8,10 +8,10 @@
 
 #include "UDPBoundSocket.h"
 #include "Platform.h"
+#include "utils/Logger.h"
 
 namespace eipScanner {
 namespace sockets {
-
 
 	UDPBoundSocket::UDPBoundSocket(std::string host, int port)
 		: UDPBoundSocket(EndPoint(host, port)) {
@@ -25,7 +25,6 @@ namespace sockets {
 		}
 
 		auto addr = _remoteEndPoint.getAddr();
-		addr.sin_addr.s_addr = INADDR_ANY;
 		if (bind(_sockedFd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 			throw std::system_error(BaseSocket::getLastError(), BaseSocket::getErrorCategory());
 		}

@@ -37,6 +37,18 @@ namespace eipScanner {
 		 * @return
 		 */
 		virtual sockets::EndPoint getRemoteEndPoint() const = 0;
+
+		/**
+		 * Gets the address of the EIP originator which the session is established with
+		 * @return
+		 */
+		virtual sockets::EndPoint getLocalEndPoint() = 0;
+
+		/**
+		 * Gets whether this connection should use 8-bit path segments.
+		 * @return
+		 */
+		virtual bool getUse8BitPathSegments() const = 0;
 	};
 }
 #endif //EIPSCANNER_SESSIONINFOIF_H
