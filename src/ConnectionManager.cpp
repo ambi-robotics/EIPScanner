@@ -234,6 +234,7 @@ namespace eipScanner {
 			if (_bindAny) {
 				addr.sin_addr.s_addr = INADDR_ANY;
 			}
+      Logger(LogLevel::ERROR) << "CREATING UDP SOCKET " << sockets::EndPoint(addr).toString();
 			auto newSocket = std::make_shared<UDPBoundSocket>(sockets::EndPoint(addr));
 			_socketMap[endPoint] = newSocket;
 			newSocket->setBeginReceiveHandler([](sockets::BaseSocket& sock) {
