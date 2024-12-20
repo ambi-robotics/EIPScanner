@@ -67,7 +67,7 @@ namespace sockets {
 
 	bool EndPoint::operator< (const EndPoint& rhs) const {
 		return _host < rhs._host
-			   && _port < rhs._port;
+			   || _port < rhs._port;
 	}
 
 	std::string EndPoint::toString() const {
