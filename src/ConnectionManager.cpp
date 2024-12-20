@@ -263,6 +263,7 @@ namespace eipScanner {
 
 			return newSocket;
 		}
+    Logger(LogLevel::ERROR) << "SOCKET ALREADY EXISTS FOR " << endPoint.toString();
 
 		return socket->second;
 	}
