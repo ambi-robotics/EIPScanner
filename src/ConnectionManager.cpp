@@ -234,7 +234,6 @@ namespace eipScanner {
 			if (_bindAny) {
 				addr.sin_addr.s_addr = INADDR_ANY;
 			}
-      Logger(LogLevel::ERROR) << "CREATING UDP SOCKET " << sockets::EndPoint(addr).toString();
 			auto newSocket = std::make_shared<UDPBoundSocket>(sockets::EndPoint(addr));
 			_socketMap[endPoint] = newSocket;
 			newSocket->setBeginReceiveHandler([](sockets::BaseSocket& sock) {
@@ -263,9 +262,6 @@ namespace eipScanner {
 
 			return newSocket;
 		}
-    Logger(LogLevel::ERROR) << "SOCKET ALREADY EXISTS FOR " << endPoint.toString();
-    Logger(LogLevel::ERROR) << "EXISTING SOCKET REMOTE EP " << socket->second->getRemoteEndPoint().toString();
-    Logger(LogLevel::ERROR) << "EXISTING SOCKET LOCAL EP " << socket->second->getLocalEndPoint().toString();
 
 		return socket->second;
 	}
