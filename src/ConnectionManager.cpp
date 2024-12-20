@@ -264,6 +264,8 @@ namespace eipScanner {
 			return newSocket;
 		}
     Logger(LogLevel::ERROR) << "SOCKET ALREADY EXISTS FOR " << endPoint.toString();
+    Logger(LogLevel::ERROR) << "EXISTING SOCKET REMOTE EP " << socket->second.getRemoteEndPoint().toString();
+    Logger(LogLevel::ERROR) << "EXISTING SOCKET LOCAL EP " << socket->second.getLocalEndPoint().toString();
 
 		return socket->second;
 	}
