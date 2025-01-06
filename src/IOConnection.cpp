@@ -49,7 +49,7 @@ namespace eipScanner {
 
 	IOConnection::~IOConnection() = default;
 
-	void IOConnection::setDataToSend(const std::vector<uint8_t> &data) {
+	void IOConnection::setDataToSend(std::shared_ptr<std::vector<uint8_t>> &data) {
 		_outputData = data;
 	}
 
@@ -126,12 +126,12 @@ namespace eipScanner {
 
 			_o2tTimer = 0;
 			_sendDataHandle(_outputData);
-			if (_o2tFixedSize && _outputData.size() != _o2tDataSize)  {
+			if (_o2tFixedSize && _outputData->size() != _o2tDataSize)  {
 				Logger(LogLevel::WARNING) << "Connection O2T_ID=" << _o2tNetworkConnectionId
-										  << " has fixed size " << _o2tDataSize << " bytes but " << _outputData.size()
+										  << " has fixed size " << _o2tDataSize << " bytes but " << _outputData->size()
 										  << " bytes are to send. Don't send this data.";
 			} else {
-				buffer << _outputData;
+				buffer << *_outputData;
 				commonPacket << factory.createConnectedDataItem(buffer.data());
 
 				_socket->Send(commonPacket.pack());

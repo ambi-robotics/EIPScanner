@@ -25,7 +25,7 @@ namespace eipScanner {
 		friend class ConnectionManager;
 	public:
 		using ReceiveDataHandle = std::function<void(cip::CipUdint, cip::CipUint, const std::vector<uint8_t>&)>;
-		using SendDataHandle = std::function<void(std::vector<uint8_t>&)>;
+		using SendDataHandle = std::function<void(std::shared_ptr<std::vector<uint8_t>>)>;
 		using CloseHandle = std::function<void()>;
 
 		using WPtr=std::weak_ptr<IOConnection>;
@@ -98,7 +98,7 @@ namespace eipScanner {
 		cip::CipUint _originatorVendorId;
 		cip::CipUdint _originatorSerialNumber;
 
-		std::vector<uint8_t> _outputData;
+    std::shared_ptr<std::vector<uint8_t>> _outputData;
 
 		sockets::UDPSocket::UPtr _socket;
 
