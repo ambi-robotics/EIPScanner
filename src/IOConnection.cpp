@@ -49,7 +49,7 @@ namespace eipScanner {
 
 	IOConnection::~IOConnection() = default;
 
-	void IOConnection::setDataToSend(std::shared_ptr<std::vector<uint8_t>> &data) {
+	void IOConnection::setDataToSend(std::shared_ptr<std::vector<uint8_t>> data) {
 		_outputData = data;
 	}
 
