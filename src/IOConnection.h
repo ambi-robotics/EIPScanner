@@ -98,7 +98,7 @@ namespace eipScanner {
 		cip::CipUint _originatorVendorId;
 		cip::CipUdint _originatorSerialNumber;
 
-    std::shared_ptr<std::vector<uint8_t>> _outputData;
+		std::shared_ptr<std::vector<uint8_t>> _outputData;
 
 		sockets::UDPSocket::UPtr _socket;
 
