@@ -42,7 +42,7 @@ namespace eipScanner {
 		 * @note Set only data. The sequence counter and the real time format header are append automatically
 		 * @param data the dat to send
 		 */
-		void setDataToSend(const std::vector<uint8_t>& data);
+		void setDataToSend(std::shared_ptr<std::vector<uint8_t>> data);
 
 		/**
 		 * @brief Sets a callback to handle received data
