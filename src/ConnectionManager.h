@@ -6,6 +6,7 @@
 #define EIPSCANNER_CONNECTIONMANAGER_H
 
 #include <map>
+#include <mutex>
 #include "MessageRouter.h"
 #include "IOConnection.h"
 #include "cip/connectionManager/ConnectionParameters.h"
@@ -76,6 +77,7 @@ namespace eipScanner {
 	private:
 		MessageRouter::SPtr _messageRouter;
 		std::map<cip::CipUint, IOConnection::SPtr> _connectionMap;
+		std::mutex _connectionMutex;
 		std::map<sockets::EndPoint, std::shared_ptr<sockets::UDPBoundSocket>> _socketMap;
 
 		sockets::UDPBoundSocket::SPtr  findOrCreateSocket(const sockets::EndPoint& endPoint);

@@ -105,6 +105,7 @@ namespace eipScanner {
 		ReceiveDataHandle _receiveDataHandle;
 		CloseHandle _closeHandle;
 		SendDataHandle _sendDataHandle;
+		bool _isOpen;
 
 		std::chrono::steady_clock::time_point _lastHandleTime;
 	};
