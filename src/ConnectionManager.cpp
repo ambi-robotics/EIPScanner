@@ -177,6 +177,7 @@ namespace eipScanner {
 
 	void ConnectionManager::forwardClose(const SessionInfoIf::SPtr& si, const IOConnection::WPtr& ioConnection) {
 		if (auto ptr = ioConnection.lock()) {
+			ptr->_isOpen = false;  // final removal done on next call to handleConnections()
 			ForwardCloseRequest request;
 
 			request.setConnectionPath(ptr->_connectionPath);
@@ -198,7 +199,6 @@ namespace eipScanner {
 					<< messageRouterResponse.getGeneralStatusCode()
 					<< ". But the connection is removed from ConnectionManager anyway";
 			}
-			ptr->_isOpen = false;  // final clean-up done on next call to handleConnections()
 		} else {
 			Logger(LogLevel::WARNING) << "Attempt to close an already closed connection";
 		}
