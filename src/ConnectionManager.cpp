@@ -253,10 +253,16 @@ namespace eipScanner {
 				buffer >> connectionId;
 				Logger(LogLevel::DEBUG) << "Received data from connection T2O_ID=" << connectionId;
 
-				// TODO: std::lock_guard<std::mutex> guard(_connectionMutex);
-				auto io = _connectionMap.find(connectionId);
-				if (io != _connectionMap.end()) {
-					io->second->notifyReceiveData(commonPacket.getItems().at(1).getData());
+				IOConnection::SPtr io_ptr;
+				{
+					std::lock_guard<std::mutex> guard(_connectionMutex);
+					auto io = _connectionMap.find(connectionId);
+					if (io != _connectionMap.end()) {
+						io_ptr = io->second;
+					}
+				}
+				if (io_ptr) {
+					io_ptr->notifyReceiveData(commonPacket.getItems().at(1).getData());
 				} else {
 					Logger(LogLevel::ERROR) << "Received data from unknown connection T2O_ID=" << connectionId;
 				}
