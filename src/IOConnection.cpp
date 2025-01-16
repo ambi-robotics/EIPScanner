@@ -100,8 +100,6 @@ namespace eipScanner {
 		auto periodInMicroS = sinceLastHandle.count() * 1000;
 		_connectionTimeoutCount += periodInMicroS;
 		if (!_isOpen) {
-			Logger(LogLevel::WARNING) << "Connection T2O_ID=" << _t2oNetworkConnectionId << " is closed by external party";
-			// _closeHandle();
 			return false;
 		}
 		if (_connectionTimeoutCount > _connectionTimeoutMultiplier * _t2oAPI) {
