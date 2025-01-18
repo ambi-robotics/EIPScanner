@@ -264,7 +264,7 @@ namespace eipScanner {
 				if (io_ptr && io_ptr->_isOpen) {
 					io_ptr->notifyReceiveData(commonPacket.getItems().at(1).getData());
 				} else {
-					Logger(LogLevel::ERROR) << "Received data from unknown connection T2O_ID=" << connectionId;
+					Logger(LogLevel::INFO) << "Received data from unknown connection T2O_ID=" << connectionId;
 				}
 			});
 
