@@ -151,9 +151,11 @@ namespace eipScanner {
 
 			Logger(LogLevel::INFO) << "Open UDP socket to send data to "
 					<< ioConnection->_socket->getRemoteEndPoint().toString();
+			ioConnection->_isOpen = true;
 
 			findOrCreateSocket(sockets::EndPoint(si->getLocalEndPoint().getHost(), EIP_DEFAULT_IMPLICIT_PORT));
 
+			std::lock_guard<std::mutex> guard(_connectionMutex);
 			auto result = _connectionMap
 					.insert(std::make_pair(response.getT2ONetworkConnectionId(), ioConnection));
 			if (!result.second) {
@@ -175,6 +177,7 @@ namespace eipScanner {
 
 	void ConnectionManager::forwardClose(const SessionInfoIf::SPtr& si, const IOConnection::WPtr& ioConnection) {
 		if (auto ptr = ioConnection.lock()) {
+			ptr->_isOpen = false;  // final removal done on next call to handleConnections()
 			ForwardCloseRequest request;
 
 			request.setConnectionPath(ptr->_connectionPath);
@@ -196,10 +199,6 @@ namespace eipScanner {
 					<< messageRouterResponse.getGeneralStatusCode()
 					<< ". But the connection is removed from ConnectionManager anyway";
 			}
-
-			auto rc = _connectionMap.erase(ptr->_t2oNetworkConnectionId);
-			(void) rc;
-			assert(rc);
 		} else {
 			Logger(LogLevel::WARNING) << "Attempt to close an already closed connection";
 		}
@@ -215,7 +214,9 @@ namespace eipScanner {
 
 		BaseSocket::select(sockets, timeout);
 
+		std::lock_guard<std::mutex> guard(_connectionMutex);
 		std::vector<cip::CipUdint> connectionsToClose;
+
 		for (auto& entry : _connectionMap) {
 			if (!entry.second->notifyTick()) {
 				connectionsToClose.push_back(entry.first);
@@ -252,11 +253,18 @@ namespace eipScanner {
 				buffer >> connectionId;
 				Logger(LogLevel::DEBUG) << "Received data from connection T2O_ID=" << connectionId;
 
-				auto io = _connectionMap.find(connectionId);
-				if (io != _connectionMap.end()) {
-					io->second->notifyReceiveData(commonPacket.getItems().at(1).getData());
+				IOConnection::SPtr io_ptr;
+				{
+					std::lock_guard<std::mutex> guard(_connectionMutex);
+					auto io = _connectionMap.find(connectionId);
+					if (io != _connectionMap.end()) {
+						io_ptr = io->second;
+					}
+				}
+				if (io_ptr && io_ptr->_isOpen) {
+					io_ptr->notifyReceiveData(commonPacket.getItems().at(1).getData());
 				} else {
-					Logger(LogLevel::ERROR) << "Received data from unknown connection T2O_ID=" << connectionId;
+					Logger(LogLevel::INFO) << "Received data from unknown connection T2O_ID=" << connectionId;
 				}
 			});
 

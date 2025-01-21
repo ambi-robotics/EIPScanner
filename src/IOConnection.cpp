@@ -44,6 +44,7 @@ namespace eipScanner {
 			, _receiveDataHandle([](auto, auto, auto) {})
 			, _closeHandle([]() {})
 			, _sendDataHandle([](auto) {})
+			, _isOpen(false)
 			, _lastHandleTime(std::chrono::steady_clock::now()) {
 	}
 
@@ -98,8 +99,11 @@ namespace eipScanner {
 
 		auto periodInMicroS = sinceLastHandle.count() * 1000;
 		_connectionTimeoutCount += periodInMicroS;
+		if (!_isOpen) {
+			return false;
+		}
 		if (_connectionTimeoutCount > _connectionTimeoutMultiplier * _t2oAPI) {
-			Logger(LogLevel::WARNING) << "Connection SeriaNumber=" << _serialNumber << " is closed by timeout";
+			Logger(LogLevel::WARNING) << "Connection T2O_ID=" << _t2oNetworkConnectionId << " is closed by timeout";
 			_closeHandle();
 			return false;
 		}
