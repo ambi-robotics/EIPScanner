@@ -95,14 +95,14 @@ namespace eipScanner {
 		}
 	}
 
-  std::chrono::milliseconds timeToNextSend() {
+	std::chrono::milliseconds timeToNextSend() {
 		auto now = std::chrono::steady_clock::now();
 		auto sinceLastHandle =
 			std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastHandleTime);
 		auto periodInMicroS = sinceLastHandle.count() * 1000;
-    auto remainingInMicroS = _o2tAPI - (_o2tTimer + periodInMicroS);
-    return std::chrono::milliseconds(std::max(static_cast<int>(std::ceil(remainingInMicroS / 1000)), 0));
-  }
+		auto remainingInMicroS = _o2tAPI - (_o2tTimer + periodInMicroS);
+		return std::chrono::milliseconds(std::max(static_cast<int>(std::ceil(remainingInMicroS / 1000)), 0));
+	}
 
 	bool IOConnection::notifyTick() {
 		auto now = std::chrono::steady_clock::now();
