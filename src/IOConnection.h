@@ -57,17 +57,18 @@ namespace eipScanner {
 		 */
 		void setCloseListener(CloseHandle handle);
 
-        /**
-         * @brief Sets a callback to handle data to send
-         *
-         * @param handle
-         */
-        void setSendDataListener(SendDataHandle handle);
+		/**
+		 * @brief Sets a callback to handle data to send
+		 *
+		 * @param handle
+		 */
+		void setSendDataListener(SendDataHandle handle);
 
 	private:
 		IOConnection();
 		void notifyReceiveData(const std::vector<uint8_t> &data);
 		bool notifyTick();
+		std::chrono::milliseconds timeToNextSend();
 
 		cip::CipUdint _o2tNetworkConnectionId;
 		cip::CipUdint _t2oNetworkConnectionId;
