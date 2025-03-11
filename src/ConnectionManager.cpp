@@ -220,7 +220,6 @@ namespace eipScanner {
 				min_timeout = timeToNextSend;
 			}
 		}
-		Logger(LogLevel::ERROR) << "Minimum timeout: " << min_timeout.count();
 		BaseSocket::select(sockets, min_timeout);
 
 		std::lock_guard<std::mutex> guard(_connectionMutex);
