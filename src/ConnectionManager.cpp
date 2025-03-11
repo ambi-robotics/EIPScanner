@@ -215,7 +215,7 @@ namespace eipScanner {
 		// Adjust the timeout to the next predicted output tick
 		std::chrono::milliseconds min_timeout(timeout);
 		for (auto& entry : _connectionMap) {
-			auto timeToNextSend = entry->timeToNextSend();
+			auto timeToNextSend = entry.second->timeToNextSend();
 			if (min_timeout > timeToNextSend) {
 				min_timeout = timeToNextSend;
 			}

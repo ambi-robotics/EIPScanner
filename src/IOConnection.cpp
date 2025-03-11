@@ -95,7 +95,7 @@ namespace eipScanner {
 		}
 	}
 
-	std::chrono::milliseconds timeToNextSend() {
+	std::chrono::milliseconds IOConnection::timeToNextSend() {
 		auto now = std::chrono::steady_clock::now();
 		auto sinceLastHandle =
 			std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastHandleTime);
