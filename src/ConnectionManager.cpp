@@ -212,7 +212,15 @@ namespace eipScanner {
 			return entry.second;
 		});
 
-		BaseSocket::select(sockets, timeout);
+    // Adjust the timeout to the next predicted output tick
+    std::chrono::milliseconds min_timeout(timeout);
+		for (auto& entry : _connectionMap) {
+      auto timeToNextSend = entry->timeToNextSend();
+      if (min_timeout > timeToNextSend) {
+        min_timeout = timeToNextSend;
+      }
+    }
+		BaseSocket::select(sockets, min_timeout);
 
 		std::lock_guard<std::mutex> guard(_connectionMutex);
 		std::vector<cip::CipUdint> connectionsToClose;
