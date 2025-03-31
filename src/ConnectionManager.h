@@ -66,6 +66,7 @@ namespace eipScanner {
 		/**
 		 * @brief Handles active connections
 		 * @param timeout the timeout of receiving the data by select function
+		 * @param send if true, output connections are handled too
 		 */
 		void handleConnections(std::chrono::milliseconds timeout);
 

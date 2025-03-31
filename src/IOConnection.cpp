@@ -95,21 +95,22 @@ namespace eipScanner {
 		}
 	}
 
+  // Will return 0 if we're within 1ms of our next send interval
 	std::chrono::milliseconds IOConnection::timeToNextSend() {
 		auto now = std::chrono::steady_clock::now();
 		auto sinceLastHandle =
-			std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastHandleTime);
-		auto periodInMicroS = sinceLastHandle.count() * 1000;
+			std::chrono::duration_cast<std::chrono::microseconds>(now - _lastHandleTime);
+		auto periodInMicroS = sinceLastHandle.count();
 		auto remainingInMicroS = _o2tAPI - (_o2tTimer + periodInMicroS);
-		return std::chrono::milliseconds(std::max(static_cast<int>(std::ceil(remainingInMicroS / 1000)), 0));
+		return std::chrono::milliseconds(std::max(static_cast<int>(remainingInMicroS / 1000), 0));
 	}
 
+  // GOAL: Send a message if we're within 1ms of our next send
 	bool IOConnection::notifyTick() {
 		auto now = std::chrono::steady_clock::now();
-		auto sinceLastHandle =
-			std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastHandleTime);
+		auto sinceLastHandle = std::chrono::duration_cast<std::chrono::microseconds>(now - _lastHandleTime);
 
-		auto periodInMicroS = sinceLastHandle.count() * 1000;
+		auto periodInMicroS = sinceLastHandle.count();
 		_connectionTimeoutCount += periodInMicroS;
 		if (!_isOpen) {
 			return false;
@@ -123,7 +124,8 @@ namespace eipScanner {
 		_lastHandleTime = now;
 
 		_o2tTimer += periodInMicroS;
-		if (_o2tTimer >= _o2tAPI) {
+    // Tick forward if we're within a millisecond
+		if (_o2tTimer >= _o2tAPI - 1000) {
 			_o2tSequenceNumber++;
 			CommonPacket commonPacket;
 			CommonPacketItemFactory factory;
