@@ -95,7 +95,7 @@ namespace eipScanner {
 		}
 	}
 
-  // Will return 0 if we're within 1ms of our next send interval
+	// Will return 0 if we're within 1ms of our next send interval
 	std::chrono::milliseconds IOConnection::timeToNextSend() {
 		auto now = std::chrono::steady_clock::now();
 		auto sinceLastHandle =
@@ -105,7 +105,6 @@ namespace eipScanner {
 		return std::chrono::milliseconds(std::max(static_cast<int>(remainingInMicroS / 1000), 0));
 	}
 
-  // GOAL: Send a message if we're within 1ms of our next send
 	bool IOConnection::notifyTick() {
 		auto now = std::chrono::steady_clock::now();
 		auto sinceLastHandle = std::chrono::duration_cast<std::chrono::microseconds>(now - _lastHandleTime);
