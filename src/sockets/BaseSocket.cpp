@@ -8,6 +8,7 @@
 #include <unistd.h>
 #elif defined(_WIN32) || defined(WIN32) || defined(_WIN64)
 #include <winsock2.h>
+#include <ws2tcpip.h>
 #include <time.h>
 #endif
 
