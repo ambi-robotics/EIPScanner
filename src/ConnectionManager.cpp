@@ -2,6 +2,7 @@
 // Created by Aleksey Timin on 11/18/19.
 //
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <cstdlib>
 #include <random>
@@ -52,19 +53,19 @@ namespace eipScanner {
 
 	IOConnection::WPtr
 	ConnectionManager::forwardOpen(const SessionInfoIf::SPtr& si, ConnectionParameters connectionParameters, bool isLarge) {
-		static int serialNumberCount = 0;
+		static std::atomic<int> serialNumberCount{0};
 		connectionParameters.connectionSerialNumber = ++serialNumberCount;
 
 		NetworkConnectionParametersBuilder o2tNCP(connectionParameters.o2tNetworkConnectionParams, isLarge);
 		NetworkConnectionParametersBuilder t2oNCP(connectionParameters.t2oNetworkConnectionParams, isLarge);
 
 		if (o2tNCP.getConnectionType() == NetworkConnectionParametersBuilder::MULTICAST) {
-			static cip::CipUint idCount = _incarnationId << 16;
+			static std::atomic<cip::CipUint> idCount{static_cast<cip::CipUint>(_incarnationId << 16)};
 			connectionParameters.o2tNetworkConnectionId = ++idCount;
 		}
 
 		if (t2oNCP.getConnectionType() == NetworkConnectionParametersBuilder::P2P) {
-			static cip::CipUdint idCount = _incarnationId << 16;
+			static std::atomic<cip::CipUdint> idCount{static_cast<cip::CipUdint>(_incarnationId << 16)};
 			connectionParameters.t2oNetworkConnectionId = ++idCount;
 		}
 

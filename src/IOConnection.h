@@ -5,6 +5,7 @@
 #ifndef EIPSCANNER_IOCONNECTION_H
 #define EIPSCANNER_IOCONNECTION_H
 
+#include <atomic>
 #include <memory>
 #include <vector>
 #include <functional>
@@ -106,7 +107,7 @@ namespace eipScanner {
 		ReceiveDataHandle _receiveDataHandle;
 		CloseHandle _closeHandle;
 		SendDataHandle _sendDataHandle;
-		bool _isOpen;
+		std::atomic<bool> _isOpen;
 
 		std::chrono::steady_clock::time_point _lastHandleTime;
 	};
