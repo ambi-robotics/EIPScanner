@@ -77,8 +77,9 @@ namespace eipScanner {
 	private:
 		MessageRouter::SPtr _messageRouter;
 		std::map<cip::CipUint, IOConnection::SPtr> _connectionMap;
-		std::mutex _connectionMutex;
+		mutable std::mutex _connectionMutex;
 		std::map<sockets::EndPoint, std::shared_ptr<sockets::UDPBoundSocket>> _socketMap;
+		mutable std::mutex _socketMutex;
 
 		sockets::UDPBoundSocket::SPtr  findOrCreateSocket(const sockets::EndPoint& endPoint);
 		cip::CipUint _incarnationId;
