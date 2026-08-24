@@ -66,11 +66,24 @@ namespace eipScanner {
 		 */
 		void setSendDataListener(SendDataHandle handle);
 
+		/**
+		 * @brief Sends the current output data now instead of at the next API tick
+		 *
+		 * The cyclic timer restarts from this send, so the next periodic frame goes
+		 * out one API later. Safe to call from any thread: this and the poller's
+		 * cyclic send serialize on the same lock.
+		 *
+		 * @return true if a frame was sent, false if the connection is closed
+		 */
+		bool sendNow();
+
 	private:
 		IOConnection();
 		void notifyReceiveData(const std::vector<uint8_t> &data);
 		bool notifyTick();
 		std::chrono::milliseconds timeToNextSend();
+		// Builds and sends one O->T frame. Caller holds _sendMutex.
+		void sendOutputFrame();
 
 		cip::CipUdint _o2tNetworkConnectionId;
 		cip::CipUdint _t2oNetworkConnectionId;
@@ -109,6 +122,10 @@ namespace eipScanner {
 		// below is written by the owning thread and read by the poller.
 		mutable std::mutex _handlerMutex;
 		std::vector<uint8_t> _outputData;
+		// Serializes frame production between the poller (notifyTick) and
+		// sendNow() callers: guards _o2tTimer, the sequence counters, and the
+		// socket send. Taken before _handlerMutex, never after.
+		mutable std::mutex _sendMutex;
 		ReceiveDataHandle _receiveDataHandle;
 		CloseHandle _closeHandle;
 		SendDataHandle _sendDataHandle;
