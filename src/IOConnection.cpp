@@ -111,6 +111,7 @@ namespace eipScanner {
 		auto sinceLastHandle =
 			std::chrono::duration_cast<std::chrono::microseconds>(now - _lastHandleTime);
 		auto periodInMicroS = sinceLastHandle.count();
+		std::lock_guard<std::mutex> guard(_sendMutex);
 		auto remainingInMicroS = _o2tAPI - (_o2tTimer + periodInMicroS);
 		return std::chrono::milliseconds(std::max(static_cast<int>(remainingInMicroS / 1000), 0));
 	}
@@ -137,48 +138,62 @@ namespace eipScanner {
 
 		_lastHandleTime = now;
 
+		std::lock_guard<std::mutex> guard(_sendMutex);
 		_o2tTimer += periodInMicroS;
-    // Tick forward if we're within a millisecond
+		// Tick forward if we're within a millisecond
 		if (_o2tTimer >= _o2tAPI - 1000) {
-			_o2tSequenceNumber++;
-			CommonPacket commonPacket;
-			CommonPacketItemFactory factory;
-			commonPacket << factory.createSequenceAddressItem(_o2tNetworkConnectionId, _o2tSequenceNumber);
-
-			Buffer buffer;
-			if ((_transportTypeTrigger & NetworkConnectionParams::CLASS1) > 0
-				|| (_transportTypeTrigger & NetworkConnectionParams::CLASS3) > 0) {
-				buffer << ++_sequenceValueCount;
-			}
-
-			if (_o2tRealTimeFormat) {
-				cip::CipUdint header = 1; //TODO: Always RUN
-				buffer << header;
-			}
-
-			_o2tTimer = 0;
-			// The send handler mutates the output buffer in place, so it runs
-			// with the lock held and must not call back into this connection.
-			// The outputs are then snapshotted so the app can keep writing them
-			// while this frame is serialized and sent.
-			std::vector<uint8_t> outputData;
-			{
-				std::lock_guard<std::mutex> guard(_handlerMutex);
-				_sendDataHandle(_outputData);
-				outputData = _outputData;
-			}
-			if (_o2tFixedSize && outputData.size() != _o2tDataSize)  {
-				Logger(LogLevel::WARNING) << "Connection O2T_ID=" << _o2tNetworkConnectionId
-										  << " has fixed size " << _o2tDataSize << " bytes but " << outputData.size()
-										  << " bytes are to send. Don't send this data.";
-			} else {
-				buffer << outputData;
-				commonPacket << factory.createConnectedDataItem(buffer.data());
-
-				_socket->Send(commonPacket.pack());
-			}
+			sendOutputFrame();
 		}
 
 		return true;
+	}
+
+	bool IOConnection::sendNow() {
+		if (!_isOpen) {
+			return false;
+		}
+		std::lock_guard<std::mutex> guard(_sendMutex);
+		sendOutputFrame();
+		return true;
+	}
+
+	void IOConnection::sendOutputFrame() {
+		_o2tSequenceNumber++;
+		CommonPacket commonPacket;
+		CommonPacketItemFactory factory;
+		commonPacket << factory.createSequenceAddressItem(_o2tNetworkConnectionId, _o2tSequenceNumber);
+
+		Buffer buffer;
+		if ((_transportTypeTrigger & NetworkConnectionParams::CLASS1) > 0
+			|| (_transportTypeTrigger & NetworkConnectionParams::CLASS3) > 0) {
+			buffer << ++_sequenceValueCount;
+		}
+
+		if (_o2tRealTimeFormat) {
+			cip::CipUdint header = 1; //TODO: Always RUN
+			buffer << header;
+		}
+
+		_o2tTimer = 0;
+		// The send handler mutates the output buffer in place, so it runs
+		// with the lock held and must not call back into this connection.
+		// The outputs are then snapshotted so the app can keep writing them
+		// while this frame is serialized and sent.
+		std::vector<uint8_t> outputData;
+		{
+			std::lock_guard<std::mutex> guard(_handlerMutex);
+			_sendDataHandle(_outputData);
+			outputData = _outputData;
+		}
+		if (_o2tFixedSize && outputData.size() != _o2tDataSize)  {
+			Logger(LogLevel::WARNING) << "Connection O2T_ID=" << _o2tNetworkConnectionId
+									  << " has fixed size " << _o2tDataSize << " bytes but " << outputData.size()
+									  << " bytes are to send. Don't send this data.";
+		} else {
+			buffer << outputData;
+			commonPacket << factory.createConnectedDataItem(buffer.data());
+
+			_socket->Send(commonPacket.pack());
+		}
 	}
 }
