@@ -76,7 +76,7 @@ namespace eipScanner {
 		bool hasOpenConnections() const;
 	private:
 		MessageRouter::SPtr _messageRouter;
-		std::map<cip::CipUint, IOConnection::SPtr> _connectionMap;
+		std::map<cip::CipUdint, IOConnection::SPtr> _connectionMap;
 		mutable std::mutex _connectionMutex;
 		std::map<sockets::EndPoint, std::shared_ptr<sockets::UDPBoundSocket>> _socketMap;
 		mutable std::mutex _socketMutex;
