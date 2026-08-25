@@ -5,7 +5,9 @@
 #ifndef EIPSCANNER_IOCONNECTION_H
 #define EIPSCANNER_IOCONNECTION_H
 
+#include <atomic>
 #include <memory>
+#include <mutex>
 #include <vector>
 #include <functional>
 #include "cip/Types.h"
@@ -99,14 +101,18 @@ namespace eipScanner {
 		cip::CipUint _originatorVendorId;
 		cip::CipUdint _originatorSerialNumber;
 
-		std::vector<uint8_t> _outputData;
-
 		sockets::UDPSocket::UPtr _socket;
 
+		// The connection is published into ConnectionManager::_connectionMap by
+		// forwardOpen(), so the poller thread can tick it and dispatch received
+		// data before the owner has finished installing its handlers. Everything
+		// below is written by the owning thread and read by the poller.
+		mutable std::mutex _handlerMutex;
+		std::vector<uint8_t> _outputData;
 		ReceiveDataHandle _receiveDataHandle;
 		CloseHandle _closeHandle;
 		SendDataHandle _sendDataHandle;
-		bool _isOpen;
+		std::atomic<bool> _isOpen;
 
 		std::chrono::steady_clock::time_point _lastHandleTime;
 	};

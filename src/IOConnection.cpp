@@ -54,18 +54,22 @@ namespace eipScanner {
 	IOConnection::~IOConnection() = default;
 
 	void IOConnection::setDataToSend(const std::vector<uint8_t> &data) {
+		std::lock_guard<std::mutex> guard(_handlerMutex);
 		_outputData = data;
 	}
 
 	void IOConnection::setReceiveDataListener(ReceiveDataHandle handle) {
+		std::lock_guard<std::mutex> guard(_handlerMutex);
 		_receiveDataHandle = std::move(handle);
 	}
 
 	void IOConnection::setSendDataListener(SendDataHandle handle) {
-        	_sendDataHandle = std::move(handle);
+		std::lock_guard<std::mutex> guard(_handlerMutex);
+		_sendDataHandle = std::move(handle);
 	}
 
 	void IOConnection::setCloseListener(CloseHandle handle) {
+		std::lock_guard<std::mutex> guard(_handlerMutex);
 		_closeHandle = std::move(handle);
 	}
 
@@ -90,8 +94,14 @@ namespace eipScanner {
 				<< " bytes were received. Ignore this data.";
 		} else {
 			_connectionTimeoutCount = 0;
-			_receiveDataHandle(runtimeHeader, sequenceValueCount,
-							   ioData);
+			// Copied out so the handler runs without the lock held: it belongs to
+			// the owner and may take locks of its own.
+			ReceiveDataHandle handle;
+			{
+				std::lock_guard<std::mutex> guard(_handlerMutex);
+				handle = _receiveDataHandle;
+			}
+			handle(runtimeHeader, sequenceValueCount, ioData);
 		}
 	}
 
@@ -116,7 +126,12 @@ namespace eipScanner {
 		}
 		if (_connectionTimeoutCount > _connectionTimeoutMultiplier * _t2oAPI) {
 			Logger(LogLevel::WARNING) << "Connection T2O_ID=" << _t2oNetworkConnectionId << " is closed by timeout";
-			_closeHandle();
+			CloseHandle handle;
+			{
+				std::lock_guard<std::mutex> guard(_handlerMutex);
+				handle = _closeHandle;
+			}
+			handle();
 			return false;
 		}
 
@@ -142,13 +157,22 @@ namespace eipScanner {
 			}
 
 			_o2tTimer = 0;
-			_sendDataHandle(_outputData);
-			if (_o2tFixedSize && _outputData.size() != _o2tDataSize)  {
+			// The send handler mutates the output buffer in place, so it runs
+			// with the lock held and must not call back into this connection.
+			// The outputs are then snapshotted so the app can keep writing them
+			// while this frame is serialized and sent.
+			std::vector<uint8_t> outputData;
+			{
+				std::lock_guard<std::mutex> guard(_handlerMutex);
+				_sendDataHandle(_outputData);
+				outputData = _outputData;
+			}
+			if (_o2tFixedSize && outputData.size() != _o2tDataSize)  {
 				Logger(LogLevel::WARNING) << "Connection O2T_ID=" << _o2tNetworkConnectionId
-										  << " has fixed size " << _o2tDataSize << " bytes but " << _outputData.size()
+										  << " has fixed size " << _o2tDataSize << " bytes but " << outputData.size()
 										  << " bytes are to send. Don't send this data.";
 			} else {
-				buffer << _outputData;
+				buffer << outputData;
 				commonPacket << factory.createConnectedDataItem(buffer.data());
 
 				_socket->Send(commonPacket.pack());

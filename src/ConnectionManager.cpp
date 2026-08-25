@@ -2,6 +2,7 @@
 // Created by Aleksey Timin on 11/18/19.
 //
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <cstdlib>
 #include <random>
@@ -52,19 +53,19 @@ namespace eipScanner {
 
 	IOConnection::WPtr
 	ConnectionManager::forwardOpen(const SessionInfoIf::SPtr& si, ConnectionParameters connectionParameters, bool isLarge) {
-		static int serialNumberCount = 0;
+		static std::atomic<int> serialNumberCount{0};
 		connectionParameters.connectionSerialNumber = ++serialNumberCount;
 
 		NetworkConnectionParametersBuilder o2tNCP(connectionParameters.o2tNetworkConnectionParams, isLarge);
 		NetworkConnectionParametersBuilder t2oNCP(connectionParameters.t2oNetworkConnectionParams, isLarge);
 
 		if (o2tNCP.getConnectionType() == NetworkConnectionParametersBuilder::MULTICAST) {
-			static cip::CipUint idCount = _incarnationId << 16;
+			static std::atomic<cip::CipUint> idCount{static_cast<cip::CipUint>(_incarnationId << 16)};
 			connectionParameters.o2tNetworkConnectionId = ++idCount;
 		}
 
 		if (t2oNCP.getConnectionType() == NetworkConnectionParametersBuilder::P2P) {
-			static cip::CipUdint idCount = _incarnationId << 16;
+			static std::atomic<cip::CipUdint> idCount{static_cast<cip::CipUdint>(_incarnationId << 16)};
 			connectionParameters.t2oNetworkConnectionId = ++idCount;
 		}
 
@@ -206,20 +207,28 @@ namespace eipScanner {
 
 	void ConnectionManager::handleConnections(std::chrono::milliseconds timeout) {
 		std::vector<BaseSocket::SPtr > sockets;
-		std::transform(_socketMap.begin(), _socketMap.end(), std::back_inserter(sockets), [](auto entry) {
-			auto fd = entry.second->getSocketFd();
-			(void) fd;
-			return entry.second;
-		});
+		{
+			std::lock_guard<std::mutex> guard(_socketMutex);
+			std::transform(_socketMap.begin(), _socketMap.end(), std::back_inserter(sockets), [](auto entry) {
+				auto fd = entry.second->getSocketFd();
+				(void) fd;
+				return entry.second;
+			});
+		}
 
 		// Adjust the timeout to the next predicted output tick
 		std::chrono::milliseconds min_timeout(timeout);
-		for (auto& entry : _connectionMap) {
-			auto timeToNextSend = entry.second->timeToNextSend();
-			if (min_timeout > timeToNextSend) {
-				min_timeout = timeToNextSend;
+		{
+			std::lock_guard<std::mutex> guard(_connectionMutex);
+			for (auto& entry : _connectionMap) {
+				auto timeToNextSend = entry.second->timeToNextSend();
+				if (min_timeout > timeToNextSend) {
+					min_timeout = timeToNextSend;
+				}
 			}
 		}
+
+		// Blocks for up to min_timeout, so it must not hold either lock.
 		BaseSocket::select(sockets, min_timeout);
 
 		std::lock_guard<std::mutex> guard(_connectionMutex);
@@ -237,6 +246,7 @@ namespace eipScanner {
 	}
 
 	UDPBoundSocket::SPtr ConnectionManager::findOrCreateSocket(const sockets::EndPoint& endPoint) {
+		std::lock_guard<std::mutex> guard(_socketMutex);
 		auto socket = _socketMap.find(endPoint);
 		if (socket == _socketMap.end()) {
 			auto addr = endPoint.getAddr();
@@ -283,6 +293,7 @@ namespace eipScanner {
 	}
 
 	bool ConnectionManager::hasOpenConnections() const {
+		std::lock_guard<std::mutex> guard(_connectionMutex);
 		return !_connectionMap.empty();
 	}
 }
