@@ -109,7 +109,17 @@ namespace eipScanner {
 
 			Logger(LogLevel::INFO) << "Open IO connection O2T_ID=" << response.getO2TNetworkConnectionId()
 				<< " T2O_ID=" << response.getT2ONetworkConnectionId()
-				<< " SerialNumber " << response.getConnectionSerialNumber();
+				<< " SerialNumber " << response.getConnectionSerialNumber()
+				<< " O2T_API=" << response.getO2TApi() << "us"
+				<< " T2O_API=" << response.getT2OApi() << "us";
+
+			// The connection ticks at the granted API, not the requested RPI; a silent round-up rescales everything built on it
+			if (response.getO2TApi() != connectionParameters.o2tRPI
+				|| response.getT2OApi() != connectionParameters.t2oRPI) {
+				Logger(LogLevel::WARNING) << "Target adjusted the requested packet intervals:"
+					<< " O2T " << connectionParameters.o2tRPI << "us -> " << response.getO2TApi() << "us,"
+					<< " T2O " << connectionParameters.t2oRPI << "us -> " << response.getT2OApi() << "us";
+			}
 
 			ioConnection.reset(new IOConnection());
 			ioConnection->_o2tNetworkConnectionId = response.getO2TNetworkConnectionId();
@@ -216,32 +226,40 @@ namespace eipScanner {
 			});
 		}
 
-		// Adjust the timeout to the next predicted output tick
-		std::chrono::milliseconds min_timeout(timeout);
+		std::vector<std::pair<cip::CipUdint, IOConnection::SPtr>> connections;
 		{
 			std::lock_guard<std::mutex> guard(_connectionMutex);
+			connections.reserve(_connectionMap.size());
 			for (auto& entry : _connectionMap) {
-				auto timeToNextSend = entry.second->timeToNextSend();
-				if (min_timeout > timeToNextSend) {
-					min_timeout = timeToNextSend;
-				}
+				connections.emplace_back(entry.first, entry.second);
+			}
+		}
+
+		// Adjust the timeout to the next predicted output tick
+		std::chrono::microseconds min_timeout(timeout);
+		for (auto& entry : connections) {
+			auto timeToNextSend = entry.second->timeToNextSend();
+			if (min_timeout > timeToNextSend) {
+				min_timeout = timeToNextSend;
 			}
 		}
 
 		// Blocks for up to min_timeout, so it must not hold either lock.
 		BaseSocket::select(sockets, min_timeout);
 
-		std::lock_guard<std::mutex> guard(_connectionMutex);
+		// Tick unlocked: a timed-out connection's close handler blocks on TCP and must not stall the healthy connections
 		std::vector<cip::CipUdint> connectionsToClose;
-
-		for (auto& entry : _connectionMap) {
+		for (auto& entry : connections) {
 			if (!entry.second->notifyTick()) {
 				connectionsToClose.push_back(entry.first);
 			}
 		}
 
-		for (auto& id : connectionsToClose) {
-			_connectionMap.erase(id);
+		if (!connectionsToClose.empty()) {
+			std::lock_guard<std::mutex> guard(_connectionMutex);
+			for (auto& id : connectionsToClose) {
+				_connectionMap.erase(id);
+			}
 		}
 	}
 
