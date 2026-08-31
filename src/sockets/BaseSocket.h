@@ -42,7 +42,7 @@ namespace sockets {
 		const EndPoint &getRemoteEndPoint() const;
 		EndPoint getLocalEndPoint();
 
-		static void select(std::vector<BaseSocket::SPtr> sockets, std::chrono::milliseconds timeout);
+		static void select(std::vector<BaseSocket::SPtr> sockets, std::chrono::microseconds timeout);
 
 	protected:
 		void BeginReceive();
@@ -56,6 +56,7 @@ namespace sockets {
 		BeginReceiveHandler _beginReceiveHandler;
 
 		static timeval makePortableInterval(const std::chrono::milliseconds &recvTimeout);
+		static timeval makePortableInterval(const std::chrono::microseconds &timeout);
 	};
 }
 }

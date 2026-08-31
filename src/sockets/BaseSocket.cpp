@@ -90,17 +90,21 @@ namespace sockets {
 	}
 
 	timeval BaseSocket::makePortableInterval(const std::chrono::milliseconds &recvTimeout) {
+		return makePortableInterval(std::chrono::duration_cast<std::chrono::microseconds>(recvTimeout));
+	}
+
+	timeval BaseSocket::makePortableInterval(const std::chrono::microseconds &timeout) {
 		struct timeval tv = {
 
 #ifdef __APPLE__
-		.tv_sec = static_cast<__darwin_suseconds_t>(recvTimeout.count()/1000),
-		.tv_usec =  static_cast<__darwin_suseconds_t>((recvTimeout.count()%1000)*1000)
+		.tv_sec = static_cast<__darwin_suseconds_t>(timeout.count()/1000000),
+		.tv_usec =  static_cast<__darwin_suseconds_t>(timeout.count()%1000000)
 #elif __unix__
-		.tv_sec = static_cast<__time_t>(recvTimeout.count()/1000),
-		.tv_usec =  static_cast<__time_t>((recvTimeout.count()%1000)*1000)
+		.tv_sec = static_cast<__time_t>(timeout.count()/1000000),
+		.tv_usec =  static_cast<__time_t>(timeout.count()%1000000)
 #elif defined(_WIN32) || defined(WIN32) || defined(_WIN64)
-		.tv_sec = static_cast<long int>(recvTimeout.count()/1000),
-		.tv_usec =  static_cast<long int>((recvTimeout.count()%1000)*1000)
+		.tv_sec = static_cast<long int>(timeout.count()/1000000),
+		.tv_usec =  static_cast<long int>(timeout.count()%1000000)
 #endif
 
 		};
@@ -118,7 +122,7 @@ namespace sockets {
 		_beginReceiveHandler(*this);
 	}
 
-	void BaseSocket::select(std::vector<BaseSocket::SPtr> sockets, std::chrono::milliseconds timeout) {
+	void BaseSocket::select(std::vector<BaseSocket::SPtr> sockets, std::chrono::microseconds timeout) {
 		BaseSocket::SPtr socketWithMaxFd = *std::max_element(sockets.begin(), sockets.end(), [](auto sock1, auto sock2) {
 			return sock1->getSocketFd() < sock2->getSocketFd();
 		});
@@ -127,7 +131,7 @@ namespace sockets {
 		auto stopTime = startTime + timeout;
 		int ready;
 		do {
-			timeval tv = makePortableInterval(std::chrono::duration_cast<std::chrono::milliseconds>(stopTime-startTime));
+			timeval tv = makePortableInterval(std::chrono::duration_cast<std::chrono::microseconds>(stopTime-startTime));
 
 			fd_set recvSet;
 			FD_ZERO(&recvSet);

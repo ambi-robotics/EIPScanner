@@ -81,7 +81,7 @@ namespace eipScanner {
 		IOConnection();
 		void notifyReceiveData(const std::vector<uint8_t> &data);
 		bool notifyTick();
-		std::chrono::milliseconds timeToNextSend();
+		std::chrono::microseconds timeToNextSend();
 		// Builds and sends one O->T frame. Caller holds _sendMutex.
 		void sendOutputFrame();
 
