@@ -5,6 +5,7 @@
 #if defined(__unix__) || defined(__APPLE__)
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #elif defined(_WIN32) || defined(WIN32) || defined(_WIN64)
@@ -42,6 +43,13 @@ namespace eipScanner {
 				throw std::system_error(BaseSocket::getLastError(), BaseSocket::getErrorCategory());
 			}
 #endif
+
+			// Explicit requests are small and latency-sensitive; never wait to coalesce them with data that is not coming
+			int nodelay = 1;
+			if (setsockopt(_sockedFd, IPPROTO_TCP, TCP_NODELAY,
+					reinterpret_cast<const char*>(&nodelay), sizeof(nodelay)) < 0) {
+				throw std::system_error(BaseSocket::getLastError(), BaseSocket::getErrorCategory());
+			}
 
 			// Set non-blocking
 #if defined(__unix__) || defined(__APPLE__)

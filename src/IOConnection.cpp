@@ -105,15 +105,16 @@ namespace eipScanner {
 		}
 	}
 
-	// Will return 0 if we're within 1ms of our next send interval
-	std::chrono::milliseconds IOConnection::timeToNextSend() {
+	std::chrono::microseconds IOConnection::timeToNextSend() {
 		auto now = std::chrono::steady_clock::now();
 		auto sinceLastHandle =
 			std::chrono::duration_cast<std::chrono::microseconds>(now - _lastHandleTime);
 		auto periodInMicroS = sinceLastHandle.count();
 		std::lock_guard<std::mutex> guard(_sendMutex);
-		auto remainingInMicroS = _o2tAPI - (_o2tTimer + periodInMicroS);
-		return std::chrono::milliseconds(std::max(static_cast<int>(remainingInMicroS / 1000), 0));
+		// Microsecond resolution: flooring to milliseconds made the poller busy-spin through the last <1ms of every window
+		auto remainingInMicroS = static_cast<int64_t>(_o2tAPI)
+				- (static_cast<int64_t>(_o2tTimer) + periodInMicroS);
+		return std::chrono::microseconds(std::max<int64_t>(remainingInMicroS, 0));
 	}
 
 	bool IOConnection::notifyTick() {
@@ -140,8 +141,8 @@ namespace eipScanner {
 
 		std::lock_guard<std::mutex> guard(_sendMutex);
 		_o2tTimer += periodInMicroS;
-		// Tick forward if we're within a millisecond
-		if (_o2tTimer >= _o2tAPI - 1000) {
+		// 100us of slack for select() wake-up overhead; an early wake sleeps out the remainder instead of spinning
+		if (_o2tTimer + 100 >= _o2tAPI) {
 			sendOutputFrame();
 		}
 
